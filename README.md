@@ -1,3 +1,5 @@
+a Jasminerice version that uses zepto instead of jquery.
+
 Jasminerice
 ===========
 

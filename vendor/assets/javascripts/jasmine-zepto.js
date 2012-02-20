@@ -19,7 +19,7 @@ var sandbox = function(attributes) {
 };
 
 var spyOnEvent = function(selector, eventName) {
-  jasmine.JQuery.events.spyOn(selector, eventName);
+  jasmine.Zepto.events.spyOn(selector, eventName);
 }
 
 jasmine.getFixtures = function() {
@@ -29,9 +29,7 @@ jasmine.getFixtures = function() {
 jasmine.Fixtures = function() {
   this.containerId = 'jasmine-fixtures';
   this.fixturesCache_ = {};
-  // Changed in jasminerice to support the normal path
-  //this.fixturesPath = 'spec/javascripts/fixtures';
-  this.fixturesPath = 'jasmine/fixtures';
+  this.fixturesPath = 'spec/javascripts/fixtures';
 };
 
 jasmine.Fixtures.prototype.set = function(html) {
@@ -64,23 +62,23 @@ jasmine.Fixtures.prototype.clearCache = function() {
 };
 
 jasmine.Fixtures.prototype.cleanUp = function() {
-  jQuery('#' + this.containerId).remove();
+  Zepto('#' + this.containerId).remove();
 };
 
 jasmine.Fixtures.prototype.sandbox = function(attributes) {
   var attributesToSet = attributes || {};
-  return jQuery('<div id="sandbox" />').attr(attributesToSet);
+  return Zepto('<div id="sandbox" />').attr(attributesToSet);
 };
 
 jasmine.Fixtures.prototype.createContainer_ = function(html) {
   var container;
-  if(html instanceof jQuery) {
-    container = jQuery('<div id="' + this.containerId + '" />');
+  if(html instanceof Zepto) {
+    container = Zepto('<div id="' + this.containerId + '" />');
     container.html(html);
   } else {
     container = '<div id="' + this.containerId + '">' + html + '</div>'
   }
-  jQuery('body').append(container);
+  Zepto('body').append(container);
 };
 
 jasmine.Fixtures.prototype.getFixtureHtml_ = function(url) {
@@ -93,7 +91,7 @@ jasmine.Fixtures.prototype.getFixtureHtml_ = function(url) {
 jasmine.Fixtures.prototype.loadFixtureIntoCache_ = function(relativeUrl) {
   var self = this;
   var url = this.fixturesPath.match('/$') ? this.fixturesPath + relativeUrl : this.fixturesPath + '/' + relativeUrl;
-  jQuery.ajax({
+  Zepto.ajax({
     async: false, // must be synchronous to guarantee that no tests are run before fixture is loaded
     cache: false,
     dataType: 'html',
@@ -112,17 +110,17 @@ jasmine.Fixtures.prototype.proxyCallTo_ = function(methodName, passedArguments) 
 };
 
 
-jasmine.JQuery = function() {};
+jasmine.Zepto = function() {};
 
-jasmine.JQuery.browserTagCaseIndependentHtml = function(html) {
-  return jQuery('<div/>').append(html).html();
+jasmine.Zepto.browserTagCaseIndependentHtml = function(html) {
+  return Zepto('<div/>').append(html).html();
 };
 
-jasmine.JQuery.elementToString = function(element) {
-  return jQuery('<div />').append(element.clone()).html();
+jasmine.Zepto.elementToString = function(element) {
+  return Zepto('<div />').append(element.clone()).html();
 };
 
-jasmine.JQuery.matchersClass = {};
+jasmine.Zepto.matchersClass = {};
 
 (function(namespace) {
   var data = {
@@ -135,7 +133,7 @@ jasmine.JQuery.matchersClass = {};
       var handler = function(e) {
         data.spiedEvents[[selector, eventName]] = e;
       };
-      jQuery(selector).bind(eventName, handler);
+      Zepto(selector).bind(eventName, handler);
       data.handlers.push(handler);
     },
 
@@ -148,10 +146,10 @@ jasmine.JQuery.matchersClass = {};
       data.handlers    = [];
     }
   }
-})(jasmine.JQuery);
+})(jasmine.Zepto);
 
 (function(){
-  var jQueryMatchers = {
+  var ZeptoMatchers = {
     toHaveClass: function(className) {
       return this.actual.hasClass(className);
     },
@@ -189,11 +187,11 @@ jasmine.JQuery.matchersClass = {};
     },
 
     toHaveHtml: function(html) {
-      return this.actual.html() == jasmine.JQuery.browserTagCaseIndependentHtml(html);
+      return this.actual.html() == jasmine.Zepto.browserTagCaseIndependentHtml(html);
     },
 
     toHaveText: function(text) {
-      if (text && jQuery.isFunction(text.test)) {
+      if (text && Zepto.isFunction(text.test)) {
         return text.test(this.actual.text());
       } else {
         return this.actual.text() == text;
@@ -249,10 +247,10 @@ jasmine.JQuery.matchersClass = {};
   var bindMatcher = function(methodName) {
     var builtInMatcher = jasmine.Matchers.prototype[methodName];
 
-    jasmine.JQuery.matchersClass[methodName] = function() {
-      if (this.actual instanceof jQuery) {
-        var result = jQueryMatchers[methodName].apply(this, arguments);
-        this.actual = jasmine.JQuery.elementToString(this.actual);
+    jasmine.Zepto.matchersClass[methodName] = function() {
+      if (this.actual instanceof Zepto) {
+        var result = ZeptoMatchers[methodName].apply(this, arguments);
+        this.actual = jasmine.Zepto.elementToString(this.actual);
         return result;
       }
 
@@ -264,13 +262,13 @@ jasmine.JQuery.matchersClass = {};
     };
   };
 
-  for(var methodName in jQueryMatchers) {
+  for(var methodName in ZeptoMatchers) {
     bindMatcher(methodName);
   }
 })();
 
 beforeEach(function() {
-  this.addMatchers(jasmine.JQuery.matchersClass);
+  this.addMatchers(jasmine.Zepto.matchersClass);
   this.addMatchers({
     toHaveBeenTriggeredOn: function(selector) {
       this.message = function() {
@@ -279,12 +277,12 @@ beforeEach(function() {
           "Expected event " + this.actual + " not to have been triggered on" + selector
         ];
       };
-      return jasmine.JQuery.events.wasTriggered(selector, this.actual);
+      return jasmine.Zepto.events.wasTriggered(selector, this.actual);
     }
   })
 });
 
 afterEach(function() {
   jasmine.getFixtures().cleanUp();
-  jasmine.JQuery.events.cleanUp();
+  jasmine.Zepto.events.cleanUp();
 });
