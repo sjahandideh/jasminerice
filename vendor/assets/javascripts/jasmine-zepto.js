@@ -117,7 +117,7 @@ jasmine.Zepto.browserTagCaseIndependentHtml = function(html) {
 };
 
 jasmine.Zepto.elementToString = function(element) {
-  return Zepto('<div />').append(element.clone()).html();
+  return Zepto('<div />').append(element).html();
 };
 
 jasmine.Zepto.matchersClass = {};
@@ -248,7 +248,8 @@ jasmine.Zepto.matchersClass = {};
     var builtInMatcher = jasmine.Matchers.prototype[methodName];
 
     jasmine.Zepto.matchersClass[methodName] = function() {
-      if (this.actual instanceof Zepto) {
+
+      if (this.actual[0] instanceof HTMLElement) {
         var result = ZeptoMatchers[methodName].apply(this, arguments);
         this.actual = jasmine.Zepto.elementToString(this.actual);
         return result;
@@ -286,3 +287,4 @@ afterEach(function() {
   jasmine.getFixtures().cleanUp();
   jasmine.Zepto.events.cleanUp();
 });
+
